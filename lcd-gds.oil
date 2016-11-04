@@ -8,7 +8,7 @@ CPU test {
       SERIAL = TRUE;
     };
     BUILD = TRUE {
-      TRAMPOLINE_BASE_PATH = "/home/trampoline";
+      TRAMPOLINE_BASE_PATH = "../trampoline";
       APP_NAME = "LCD-GDS";
       APP_SRC = "lcd-gds.cpp";
       CPPCOMPILER = "avr-g++";
