@@ -149,27 +149,28 @@ void drawMenu(void) {
 }
 
 void drawGame(void) {
-  uint8_t i, font_height;
+  uint8_t i, font_height, line_height;
   u8g_uint_t width, height, width_ratio;
 
-  font_height = u8g.getFontAscent() - u8g.getFontDescent();
+  font_height = (u8g.getFontAscent() - u8g.getFontDescent());
+  line_height = font_height * 1.5;
   width = u8g.getWidth();
   height = u8g.getHeight();
   width_ratio = (width/5);
-
   u8g.setDefaultForegroundColor();
+
+  char *joueur = "Damien";
   
   // First line
   i = 0;
   u8g.drawBox(0, i, width, font_height);
   u8g.setDefaultBackgroundColor();
-  u8g.drawStr(3, i, "J1 : 0");
-  u8g.drawStr(width - 3 - u8g.getStrWidth("3.4 : Damien"), i, "3.4 : Damien");
-  i = font_height*1.5 + 1;
+  u8g.drawStr((width-u8g.getStrWidth(joueur))/2, i, joueur);
+  i = line_height + 1;
   u8g.setDefaultForegroundColor();
 
   // Column lines
-  int y = 3*(font_height+1);
+  int y = 3*(line_height+1);
   for (int j = 0; j <= 3; j++) {
     int x = (1+j)*(width_ratio+1);
     u8g.drawLine(x, i, x, i+y);
@@ -178,10 +179,10 @@ void drawGame(void) {
   // Grid
   for (int line = 1; line <= 3; line++) {
     u8g.drawLine(width_ratio, i, width-width_ratio, i);
-    i += font_height + 1;
+    i += line_height + 1;
   }
   u8g.drawLine(width_ratio, i, width-width_ratio, i);
-  i += font_height/2 + 1;
+  i += line_height/2 + 1;
 
   u8g.drawBox(0, i, width, font_height);
 }
