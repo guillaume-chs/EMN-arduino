@@ -36,17 +36,6 @@ int key = NONE;
 int oldkey = NONE;
 
 
-//////////////
-// JOYSTICK //
-//////////////
-
-#define STEP_MENU 1
-#define STEP_GAME 2
-
-uint8_t STEP = STEP_MENU;
-
-
-
 ////////////
 //  MENU  //
 ////////////
@@ -58,6 +47,18 @@ uint8_t menu_current = 0;
 uint8_t last_key_code = NONE;
 bool menu_redraw_required = true;
 bool game_redraw_required = false;
+
+
+///////////
+// STEPS //
+///////////
+
+#define STEP_MENU 1
+#define STEP_GAME 2
+
+uint8_t STEP = STEP_MENU;
+
+
 
 
 
@@ -115,6 +116,10 @@ TASK(periodicTask) {
 
 
 
+//////////////
+// CONTROLS //
+//////////////
+
 void uiStep(void) {
   key = get_joystick_key(analogRead(0));
 
@@ -131,6 +136,11 @@ void uiStep(void) {
 
 
 
+
+////////////////////
+// MENU RENDERING //
+////////////////////
+
 void drawMenu(void) {
   uint8_t i, h;
   u8g_uint_t w, d;
@@ -146,45 +156,6 @@ void drawMenu(void) {
     }
     u8g.drawStr(d, i*h+1, menu_strings[i]);
   }
-}
-
-void drawGame(void) {
-  uint8_t i, font_height, line_height;
-  u8g_uint_t width, height, width_ratio;
-
-  font_height = (u8g.getFontAscent() - u8g.getFontDescent());
-  line_height = font_height * 1.5;
-  width = u8g.getWidth();
-  height = u8g.getHeight();
-  width_ratio = (width/5);
-  u8g.setDefaultForegroundColor();
-
-  char *joueur = "Damien";
-  
-  // First line
-  i = 0;
-  u8g.drawBox(0, i, width, font_height);
-  u8g.setDefaultBackgroundColor();
-  u8g.drawStr((width-u8g.getStrWidth(joueur))/2, i, joueur);
-  i = line_height + 1;
-  u8g.setDefaultForegroundColor();
-
-  // Column lines
-  int y = 3*(line_height+1);
-  for (int j = 0; j <= 3; j++) {
-    int x = (1+j)*(width_ratio+1);
-    u8g.drawLine(x, i, x, i+y);
-  }
-
-  // Grid
-  for (int line = 1; line <= 3; line++) {
-    u8g.drawLine(width_ratio, i, width-width_ratio, i);
-    i += line_height + 1;
-  }
-  u8g.drawLine(width_ratio, i, width-width_ratio, i);
-  i += line_height/2 + 1;
-
-  u8g.drawBox(0, i, width, font_height);
 }
 
 void updateMenu(void) {
@@ -213,6 +184,63 @@ void updateMenu(void) {
   }
   uiKeyCode = NONE;
 }
+
+
+
+
+
+////////////////////
+// GAME RENDERING //
+////////////////////
+
+void drawGame(void) {
+  uint8_t yAbs, font_height, line_height;
+  u8g_uint_t width, height, width_ratio;
+
+  font_height = (u8g.getFontAscent() - u8g.getFontDescent());
+  line_height = font_height * 1.5;
+  width = u8g.getWidth();
+  height = u8g.getHeight();
+  width_ratio = (width/5);
+  u8g.setDefaultForegroundColor();
+
+  char *joueur = "Damien";
+  
+
+
+  // First box
+  yAbs = 0;
+  u8g.drawBox(0, yAbs, width, font_height);
+  u8g.setDefaultBackgroundColor();
+  u8g.drawStr((width-u8g.getStrWidth(joueur))/2, yAbs, joueur);
+  yAbs = line_height + 1;
+  u8g.setDefaultForegroundColor();
+
+
+
+  // Columns
+  int yIncr = 3*(line_height+1);
+  for (int j = 0; j <= 3; j++) {
+    int x = (1+j)*(width_ratio+1);
+    u8g.drawLine(x, yAbs, x, yAbs+yIncr);
+  }
+
+  // Lines
+  for (int line = 1; line <= 3; line++) {
+    u8g.drawLine(width_ratio, yAbs, width-width_ratio, yAbs);
+    yAbs += line_height + 1;
+  }
+  u8g.drawLine(width_ratio, yAbs, width-width_ratio, yAbs);
+  yAbs += line_height/2 + 1;
+
+
+
+  // Bottom box
+  u8g.drawBox(0, yAbs, width, font_height);
+}
+
+
+
 
 
 
