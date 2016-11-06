@@ -2,6 +2,7 @@
 #include "tpl_os.h"
 #include "Arduino.h"
 #include "U8glib/src/U8glib.h"
+#include "lcd-gds.h"
 
 
 /////////////////
@@ -93,22 +94,16 @@ TASK(periodicTask) {
   
   if (STEP == STEP_MENU) {
     updateMenu();          // update menu bar
+  }
     
-    if (menu_redraw_required) {
-      u8g.firstPage();
-      do {
-        drawMenu();
-      } while(u8g.nextPage());
-      menu_redraw_required = false;
-    }
-  } else {
-    if (game_redraw_required) {
-      u8g.firstPage();
-      do {
-        drawGame();
-      } while(u8g.nextPage());
-      game_redraw_required = false;
-    }
+  if (menu_redraw_required || game_redraw_required) {
+    u8g.firstPage();
+    do {
+      if (STEP == STEP_MENU) drawMenu();
+      else                   drawGame();
+    } while(u8g.nextPage());
+    menu_redraw_required = false;
+    game_redraw_required = false;
   }
 }
 
@@ -167,6 +162,7 @@ void updateMenu(void) {
       }
       menu_redraw_required = true;
       break;
+
     case TOP:
       if (menu_current == 0) {
         menu_current = MENU_ITEMS;
@@ -181,6 +177,7 @@ void updateMenu(void) {
         menu_redraw_required = false;
         game_redraw_required = true;
       }
+      break;
   }
   uiKeyCode = NONE;
 }
@@ -194,44 +191,47 @@ void updateMenu(void) {
 ////////////////////
 
 void drawGame(void) {
-  uint8_t yAbs, font_height, line_height;
-  u8g_uint_t width, height, width_ratio;
+  uint8_t yAbs, font_height;
+  u8g_uint_t width, height, caseHeight, caseWidth;
 
-  font_height = (u8g.getFontAscent() - u8g.getFontDescent());
-  line_height = font_height * 1.5;
+  // font_height = (u8g.getFontAscent() - u8g.getFontDescent());
+  // caseHeight = font_height * 1.5;
+  // caseWidth = (width/5);
+  font_height = 9;
+  caseWidth = CASE_W;
+  caseHeight = CASE_H;
   width = u8g.getWidth();
   height = u8g.getHeight();
-  width_ratio = (width/5);
-  u8g.setDefaultForegroundColor();
 
-  char *joueur = "Damien";
-  
 
 
   // First box
   yAbs = 0;
+  u8g.setDefaultForegroundColor();
   u8g.drawBox(0, yAbs, width, font_height);
   u8g.setDefaultBackgroundColor();
-  u8g.drawStr((width-u8g.getStrWidth(joueur))/2, yAbs, joueur);
-  yAbs = line_height + 1;
-  u8g.setDefaultForegroundColor();
+  u8g.drawStr((width-u8g.getStrWidth(DAMIEN))/2, yAbs, DAMIEN);
+
+  yAbs = caseHeight + 1;
 
 
 
   // Columns
-  int yIncr = 3*(line_height+1);
+  u8g.setDefaultForegroundColor();
+  
+  int yIncr = 3*(caseHeight+1);
   for (int j = 0; j <= 3; j++) {
-    int x = (1+j)*(width_ratio+1);
+    int x = (1+j)*(caseWidth+1);
     u8g.drawLine(x, yAbs, x, yAbs+yIncr);
   }
 
   // Lines
   for (int line = 1; line <= 3; line++) {
-    u8g.drawLine(width_ratio, yAbs, width-width_ratio, yAbs);
-    yAbs += line_height + 1;
+    u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
+    yAbs += caseHeight + 1;
   }
-  u8g.drawLine(width_ratio, yAbs, width-width_ratio, yAbs);
-  yAbs += line_height/2 + 1;
+  u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
+  yAbs += caseHeight/2 + 1;
 
 
 
