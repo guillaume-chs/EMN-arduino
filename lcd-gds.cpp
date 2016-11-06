@@ -8,7 +8,6 @@
 // SHIELD PINS //
 /////////////////
 
-// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 #define SCK   13
 #define MOSI  11
 #define CS    10
@@ -28,12 +27,9 @@
 #define RIGHT   3
 #define TOP     4
 
-uint8_t uiKeyCodeFirst = NONE;
-uint8_t uiKeyCodeSecond = NONE;
-uint8_t uiKeyCode = NONE;
-
 int key = NONE;
 int oldkey = NONE;
+uint8_t uiKeyCode = NONE;
 
 
 ////////////
@@ -62,7 +58,6 @@ uint8_t STEP = STEP_MENU;
 
 
 
-
 /////////////
 //  Setup  //
 /////////////
@@ -74,7 +69,7 @@ void updateMenu(void);
 int get_joystick_key(unsigned int);
 char *get_joystick_name(int key);
 
-U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);
+U8GLIB_NHD_C12864 u8g(SCK, MOSI, CS, A0, RST);
 Grille grid;
 
 void setup() {
@@ -121,12 +116,10 @@ void uiStep(void) {
   if (key != oldkey) {			
     oldkey = key;
     if (key > NONE) {
-      uiKeyCodeFirst = key;
-      uiKeyCode = uiKeyCodeFirst;           
+      uiKeyCode = key;         
     }
   }
 }
-
 
 
 
@@ -191,56 +184,22 @@ void updateMenu(void) {
 ////////////////////
 
 void drawGame(void) {
-  uint8_t yAbs, font_height;
-  u8g_uint_t width, height, caseHeight, caseWidth;
+  uint8_t yAbs;
+  int font_height = 9;
+  u8g_uint_t width = u8g.getWidth();
 
-  // font_height = (u8g.getFontAscent() - u8g.getFontDescent());
-  // caseHeight = font_height * 1.5;
-  // caseWidth = (width/5);
-  font_height = 9;
-  caseWidth = CASE_W;
-  caseHeight = CASE_H;
-  width = u8g.getWidth();
-  height = u8g.getHeight();
-
-
-
-  // First box
+  // Draw title box
   yAbs = 0;
   u8g.setDefaultForegroundColor();
   u8g.drawBox(0, yAbs, width, font_height);
   u8g.setDefaultBackgroundColor();
   u8g.drawStr((width-u8g.getStrWidth(DAMIEN))/2, yAbs, DAMIEN);
 
-  yAbs = caseHeight + 1;
+  yAbs = CASE_H + 1;
 
-
-
+  // Draw grid
   grid.draw(&u8g, CASE_W, yAbs);
-
-
-  // Columns
-  /*u8g.setDefaultForegroundColor();
-  
-  int yIncr = 3*(caseHeight+1);
-  for (int j = 0; j <= 3; j++) {
-    int x = (1+j)*(caseWidth+1);
-    u8g.drawLine(x, yAbs, x, yAbs+yIncr);
-  }*/
-
-  // Lines
-  /*for (int line = 1; line <= 3; line++) {
-    u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
-    yAbs += caseHeight + 1;
-  }
-  u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
-  yAbs += caseHeight/2 + 1;*/
-
 }
-
-
-
-
 
 
 
