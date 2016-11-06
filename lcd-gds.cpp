@@ -1,7 +1,6 @@
 
 #include "tpl_os.h"
 #include "Arduino.h"
-#include "U8glib/src/U8glib.h"
 #include "lcd-gds.h"
 
 
@@ -76,6 +75,7 @@ int get_joystick_key(unsigned int);
 char *get_joystick_name(int key);
 
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);
+Grille grid;
 
 void setup() {
   u8g.setRot180();      // rotate screen, if required
@@ -216,27 +216,26 @@ void drawGame(void) {
 
 
 
+  grid.draw(&u8g, CASE_W, yAbs);
+
+
   // Columns
-  u8g.setDefaultForegroundColor();
+  /*u8g.setDefaultForegroundColor();
   
   int yIncr = 3*(caseHeight+1);
   for (int j = 0; j <= 3; j++) {
     int x = (1+j)*(caseWidth+1);
     u8g.drawLine(x, yAbs, x, yAbs+yIncr);
-  }
+  }*/
 
   // Lines
-  for (int line = 1; line <= 3; line++) {
+  /*for (int line = 1; line <= 3; line++) {
     u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
     yAbs += caseHeight + 1;
   }
   u8g.drawLine(caseWidth, yAbs, width-caseWidth, yAbs);
-  yAbs += caseHeight/2 + 1;
+  yAbs += caseHeight/2 + 1;*/
 
-
-
-  // Bottom box
-  u8g.drawBox(0, yAbs, width, font_height);
 }
 
 
