@@ -22,7 +22,12 @@ public:
 	Case(int x, int y) {
 		this->x = x;
 		this->y = y;
-		this->joueur = J1;
+		this->joueur = JNONE;
+	}
+	Case(int x, int y, char joueur) {
+		this->x = x;
+		this->y = y;
+		this->joueur = joueur;
 	}
 	~Case();
 	
@@ -49,7 +54,12 @@ public:
 class Grille {
 private:
 	Case *cases[3][3];
+	Case *selected;
+	
 	void buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
+	char *checkWinner() {
+		
+	}
 
 public:
 	Grille() {
