@@ -3,7 +3,8 @@
 #define DAMIEN "Damien"
 #define J1		'X'
 #define J2		'O'
-#define JNONE	'_'
+#define JNONE	'.'
+#define CASE_SELECTED '_'
 
 #define CASE_W	25
 #define CASE_H	13
@@ -48,6 +49,10 @@ public:
 	char *print() {
 		return &(this->joueur);
 	}
+
+	bool equals(Case *other) {
+		return (this->getY() == other->getY()) && (this->getX() == other->getX());
+	}
 };
 
 
@@ -57,9 +62,9 @@ private:
 	Case *selected;
 	
 	void buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
-	char *checkWinner() {
-		
-	}
+	/*char *checkWinner() {
+
+	}*/
 
 public:
 	Grille() {
@@ -68,6 +73,7 @@ public:
 				this->cases[i][j] = new Case(i+1, j+1);
 			}
 		}
+		this->selected = this->cases[0][0];
 	}
 	~Grille() {
 		delete this->cases;
@@ -85,7 +91,12 @@ public:
 			xCoord = xInit + CASE_W/2 - 1;
 
 			for (int j = 0; j < 3; j++) {
-				u8g->drawStr(xCoord, yCoord, this->cases[i][j]->print());
+				if (this->cases[i][j]->equals(this->selected)) {
+					// u8g->drawStr(xCoord, yCoord, "_");
+				} else {
+					u8g->drawStr(xCoord, yCoord, this->cases[i][j]->print());
+				}
+
 				xCoord += (CASE_W + LINE_W);
 			}
 		}
