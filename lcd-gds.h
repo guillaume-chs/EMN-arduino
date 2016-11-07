@@ -22,7 +22,7 @@ public:
 	Case(int x, int y) {
 		this->x = x;
 		this->y = y;
-		this->joueur = JNONE;
+		this->joueur = J1;
 	}
 	~Case();
 	
@@ -40,8 +40,8 @@ public:
 		this->joueur = j;
 	}
 
-	char print() {
-		return this->joueur;
+	char *print() {
+		return &(this->joueur);
 	}
 };
 
@@ -66,6 +66,19 @@ public:
 
 	void draw(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit) {
 		this->buildGrid(u8g, xInit, yInit);
+		
+		int yCoord;
+		int xCoord;
+
+		for (int i = 0; i < 3; i++) {
+			yCoord = yInit + i*(CASE_H + LINE_H) + CASE_H/3;
+			xCoord = xInit + CASE_W/2 - 1;
+
+			for (int j = 0; j < 3; j++) {
+				u8g->drawStr(xCoord, yCoord, this->cases[i][j]->print());
+				xCoord += (CASE_W + LINE_W);
+			}
+		}
 	}
 };
 

@@ -118,7 +118,9 @@ void uiStep(void) {
     if (key > NONE) {
       uiKeyCode = key;         
     }
+    game_redraw_required = true;
   }
+
 }
 
 
