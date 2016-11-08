@@ -31,7 +31,7 @@ public:
 		this->joueur = joueur;
 	}
 	~Case();
-	
+
 	int getX(){
 		return this->x;
 	}
@@ -60,11 +60,129 @@ class Grille {
 private:
 	Case *cases[3][3];
 	Case *selected;
-	
-	void buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
-	/*char *checkWinner() {
 
-	}*/
+	void buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
+
+	bool checkD11(){
+		bool haveWinner = true;
+
+		if (selected.getX() == 1 && selected.getY() ==1) {
+			for (int i = 0; i < count; i++) {
+				if (cases[i][i].getJoueur() != lastJoueur) {
+					haveWinner = false;
+					break;
+				}
+			}
+		}
+
+		if (haveWinner) {
+			return lastJoueur;
+		}
+	}
+
+	bool checkD13(){
+		bool haveWinner = true;
+
+		if (selected.getX() == 1 && selected.getY() ==3) {
+			for (int i = 0; i < 3; i++) {
+				if (cases[0+i][2-i].getJoueur() != lastJoueur) {
+					haveWinner = false;
+					break;
+				}
+			}
+		}
+		return haveWinner;
+	}
+
+	bool checkD31(){
+		bool haveWinner = true;
+
+		if (selected.getX() == 3 && selected.getY() == 1) {
+			for (int i = 0; i < 3; i++) {
+				if (cases[2-i][0+i].getJoueur() != lastJoueur) {
+					haveWinner = false;
+					break;
+				}
+			}
+		}
+		return haveWinner;
+	}
+
+	bool checkD33(){
+		bool haveWinner = true;
+
+		if (selected.getX() == 3 && selected.getY() == 3) {
+			for (int i = 0; i < 3; i++) {
+				if (cases[2-i][2-i].getJoueur() != lastJoueur) {
+					haveWinner = false;
+					break;
+				}
+			}
+		}
+		return haveWinner;
+	}
+
+/**
+* Methode qui retourne le nom du gagne (dernier joueur, ou JNONE).
+**/
+	char *checkWinner() {
+		char *lastJoueur = selected.getJoueur();
+
+		// check current line
+		bool haveWinner = true;
+		for (int i = 0; i < 3; i++) {
+			if (cases[selected.getX()-1][i].getJoueur() != lastJoueur) {
+				haveWinner = false
+				break;
+			}
+		}
+
+		if (haveWinner) {
+			return lastJoueur;
+		} else {
+			// check current column
+			for (int i = 0; i < 3; i++) {
+				if (cases[i][selected.getY()-1].getJoueur() != lastJoueur) {
+					haveWinner = false
+					break;
+				}
+			}
+		}
+
+		if (haveWinner) {
+			return lastJoueur;
+		}
+
+		// check diagonal where X = 1 (adapt with Y value)
+		if (current.getX()==1) {
+			if (current.getY()==1) {
+				haveWinner = checkD11();
+			} else if (current.getY() ==3){
+				haveWinner = checkD13();
+			}
+		}
+
+		if (haveWinner) {
+			return lastJoueur;
+		}
+
+		// check diagonal where X = 3 (adapt with Y value)
+		if (current.getX()==3) {
+			if (current.getY()==1) {
+				haveWinner = checkD31();
+			} else if (current.getY() ==3){
+				haveWinner = checkD33();
+			}
+		}
+
+		if (current.getX()==2 && current.getY()==2){
+			if (checkD11() || checkD13() || checkD31() || checkD33()) {
+				return lastJoueur;
+			}
+		}
+
+		return JNONE;
+	}
 
 public:
 	Grille() {
@@ -78,11 +196,11 @@ public:
 	~Grille() {
 		delete this->cases;
 	}
-	
+
 
 	void draw(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit) {
 		this->buildGrid(u8g, xInit, yInit);
-		
+
 		int yCoord;
 		int xCoord;
 
@@ -113,7 +231,7 @@ void Grille::buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit) {
 	u8g_uint_t width = u8g->getWidth();
 	u8g_uint_t height = u8g->getHeight();
 	u8g->setDefaultForegroundColor();
-	
+
 	// Draw columns
 	int yIncr = 3*(CASE_H+1);
 	for (int j = 0; j <= 3; j++) {
