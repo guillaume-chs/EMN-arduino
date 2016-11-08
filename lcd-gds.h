@@ -3,6 +3,7 @@
 #define J1      'X'
 #define J2      'O'
 #define JNONE   '.'
+#define EGALITE '='
 #define CASE_SELECTED "_"
 
 #define CASE_W  25
@@ -104,69 +105,46 @@ private:
     }
 
     bool checkD11(){
-        bool haveWinner = true;
-
-        if (this->selected->getLine() == 1 && this->selected->getCol() ==1) {
-            for (int i = 0; i < 3; i++) {
-                if (cases[i][i]->getJoueur() != this->selected->getJoueur()) {
-                    haveWinner = false;
-                    break;
-                }
+        for (int i = 0; i < 3; i++) {
+            if (cases[i][i]->getJoueur() != this->selected->getJoueur()) {
+                return false;
             }
         }
-
-        if (haveWinner) {
-            return this->selected->getJoueur();
-        }
+        return true;
     }
 
     bool checkD13(){
-        bool haveWinner = true;
-
-        if (this->selected->getLine() == 1 && this->selected->getCol() == 3) {
-            for (int i = 0; i < 3; i++) {
-                if (cases[0+i][2-i]->getJoueur() != this->selected->getJoueur()) {
-                    haveWinner = false;
-                    break;
-                }
+        for (int i = 0; i < 3; i++) {
+            if (cases[0+i][2-i]->getJoueur() != this->selected->getJoueur()) {
+                return false;
             }
         }
-        return haveWinner;
+        return true;
     }
 
     bool checkD31(){
-        bool haveWinner = true;
-
-        if (this->selected->getLine() == 3 && this->selected->getCol() == 1) {
-            for (int i = 0; i < 3; i++) {
-                if (cases[2-i][0+i]->getJoueur() != this->selected->getJoueur()) {
-                    haveWinner = false;
-                    break;
-                }
+        for (int i = 0; i < 3; i++) {
+            if (cases[2-i][0+i]->getJoueur() != this->selected->getJoueur()) {
+                return false;
             }
         }
-        return haveWinner;
+        return true;
     }
 
     bool checkD33(){
-        bool haveWinner = true;
-
-        if (this->selected->getLine() == 3 && this->selected->getCol() == 3) {
-            for (int i = 0; i < 3; i++) {
-                if (this->cases[2-i][2-i]->getJoueur() != this->selected->getJoueur()) {
-                    haveWinner = false;
-                    break;
-                }
+        for (int i = 0; i < 3; i++) {
+            if (this->cases[2-i][2-i]->getJoueur() != this->selected->getJoueur()) {
+                return false;
             }
         }
-        return haveWinner;
+        return true;
     }
 
     /**
     * Methode qui retourne le nom du gagne (dernier joueur, ou JNONE).
     **/
     char checkWinner() {
-        char *lastJoueur = this->selected->getJoueur();
+        char lastJoueur = this->selected->getJoueur();
 
         // check selected line
         bool haveWinner = true;
@@ -177,7 +155,7 @@ private:
             }
         }
         if (haveWinner) {
-            return *(lastJoueur);
+            return lastJoueur;
         }
         haveWinner = true;
 
@@ -189,9 +167,8 @@ private:
             }
         }
         if (haveWinner) {
-            return *(lastJoueur);
+            return lastJoueur;
         }
-        haveWinner = true;
 
         // check diagonal where X = 1 (adapt with Y value)
         if (selected->getLine()==1) {
@@ -202,9 +179,8 @@ private:
             }
         }
         if (haveWinner) {
-            return *(lastJoueur);
+            return lastJoueur;
         }
-        haveWinner = true;
 
         // check diagonal where X = 3 (adapt with Y value)
         if (selected->getLine()==3) {
@@ -215,17 +191,16 @@ private:
             }
         }
         if (haveWinner) {
-            return *(lastJoueur);
+            return lastJoueur;
         }
-        haveWinner = true;
 
         if (selected->getLine()==2 && selected->getCol()==2){
             if (checkD11() || checkD13() || checkD31() || checkD33()) {
-                return *(lastJoueur);
+                return lastJoueur;
             }
         }
 
-        return JNONE;
+        return EGALITE;
     }
 
 public:
@@ -266,6 +241,8 @@ void Grille::draw(U8GLIB_NHD_C12864 *u8g) {
         this->drawTitleBox(u8g, "VICTOIRE DE J1");
     } else if (this->gagnant == J2) {
         this->drawTitleBox(u8g, "VICTOIRE DE J2");
+    } else if (this->gagnant == EGALITE) {
+        this->drawTitleBox(u8g, "=== EGALITE ===");
     }
 
     else {
