@@ -20,16 +20,9 @@
 // JOYSTICK //
 //////////////
 
-#define NONE    -1
-#define LEFT    0
-#define CLICK   1
-#define BOTTOM  2
-#define RIGHT   3
-#define TOP     4
-
-int key = NONE;
-int oldkey = NONE;
-uint8_t uiKeyCode = NONE;
+int key = JSK_NONE;
+int oldkey = JSK_NONE;
+uint8_t uiKeyCode = JSK_NONE;
 
 
 ////////////
@@ -40,9 +33,8 @@ uint8_t uiKeyCode = NONE;
 char *menu_strings[MENU_ITEMS] = { "Damien", "Steeve", "Guillaume", "C'est parti !" };
 
 uint8_t menu_current = 0;
-uint8_t last_key_code = NONE;
+uint8_t last_key_code = JSK_NONE;
 bool menu_redraw_required = true;
-bool game_redraw_required = false;
 
 
 ///////////
@@ -66,6 +58,7 @@ void uiStep(void);
 void drawMenu(void);
 void drawGame(void);
 void updateMenu(void);
+void updateGame(void);
 int get_joystick_key(unsigned int);
 char *get_joystick_name(int key);
 
@@ -79,26 +72,49 @@ void setup() {
   u8g.setFont(u8g_font_6x12);//4x6 5x7 5x8 6x10 6x12 6x13
   u8g.setFontRefHeightText();
   u8g.setFontPosTop();
+
+  Serial.begin(9600);
   
   menu_redraw_required = true; // force initial redraw
-  game_redraw_required = false;
 }
 
 TASK(periodicTask) {  
   uiStep();              // check for key press
   
   if (STEP == STEP_MENU) {
-    updateMenu();          // update menu bar
+    // update menu bar
+    updateMenu();
+
+    // draw menu
+    if (menu_redraw_required) {
+      u8g.firstPage();
+      do {
+        drawMenu();
+      } while(u8g.nextPage());
+      menu_redraw_required = false;
+    }
   }
-    
-  if (menu_redraw_required || game_redraw_required) {
-    u8g.firstPage();
-    do {
-      if (STEP == STEP_MENU) drawMenu();
-      else                   drawGame();
-    } while(u8g.nextPage());
-    menu_redraw_required = false;
-    game_redraw_required = false;
+
+  else if (STEP == STEP_GAME) {
+    // update game
+    grid.moveCursor(uiKeyCode);
+    uiKeyCode = JSK_NONE;
+
+    // print some data
+    Serial.print(grid.getJoueurCourant());
+    Serial.print(" - X:");
+    Serial.print(grid.getCaseSelected()->getX());
+    Serial.print(" - Y:");
+    Serial.print(grid.getCaseSelected()->getY());
+    Serial.println();
+
+    if (grid.needsRedraw()) {
+      u8g.firstPage();
+      do {
+        grid.draw(&u8g);
+      } while(u8g.nextPage());
+      grid.drawed();
+    }
   }
 }
 
@@ -115,12 +131,10 @@ void uiStep(void) {
 
   if (key != oldkey) {			
     oldkey = key;
-    if (key > NONE) {
+    if (key > JSK_NONE) {
       uiKeyCode = key;         
     }
-    game_redraw_required = true;
   }
-
 }
 
 
@@ -150,7 +164,7 @@ void drawMenu(void) {
 
 void updateMenu(void) {
   switch (uiKeyCode) {
-    case BOTTOM:
+    case JSK_BOTTOM:
       menu_current++;
       if (menu_current >= MENU_ITEMS) {
         menu_current = 0;
@@ -158,7 +172,7 @@ void updateMenu(void) {
       menu_redraw_required = true;
       break;
 
-    case TOP:
+    case JSK_TOP:
       if (menu_current == 0) {
         menu_current = MENU_ITEMS;
       }
@@ -166,41 +180,14 @@ void updateMenu(void) {
       menu_redraw_required = true;
       break;
 
-    case CLICK:
+    case JSK_CLICK:
       if (menu_current == MENU_ITEMS - 1) {
         STEP = STEP_GAME;
         menu_redraw_required = false;
-        game_redraw_required = true;
       }
       break;
   }
-  uiKeyCode = NONE;
-}
-
-
-
-
-
-////////////////////
-// GAME RENDERING //
-////////////////////
-
-void drawGame(void) {
-  uint8_t yAbs;
-  int font_height = 9;
-  u8g_uint_t width = u8g.getWidth();
-
-  // Draw title box
-  yAbs = 0;
-  u8g.setDefaultForegroundColor();
-  u8g.drawBox(0, yAbs, width, font_height);
-  u8g.setDefaultBackgroundColor();
-  u8g.drawStr((width-u8g.getStrWidth(DAMIEN))/2, yAbs, DAMIEN);
-
-  yAbs = CASE_H + 1;
-
-  // Draw grid
-  grid.draw(&u8g, CASE_W, yAbs);
+  uiKeyCode = JSK_NONE;
 }
 
 
@@ -214,24 +201,24 @@ void drawGame(void) {
 //         |
 //         2
 int get_joystick_key(unsigned int input) {   
-    if (input < 100) return LEFT;
-    else  if (input < 300) return CLICK;
-    else  if (input < 500) return BOTTOM;
-    else  if (input < 700) return RIGHT;
-    else  if (input < 900) return TOP;    
-    else  return NONE;
+    if (input < 100) return JSK_LEFT;
+    else  if (input < 300) return JSK_CLICK;
+    else  if (input < 500) return JSK_BOTTOM;
+    else  if (input < 700) return JSK_RIGHT;
+    else  if (input < 900) return JSK_TOP;    
+    else  return JSK_NONE;
 }
 
 char *get_joystick_name(int key) {
   char *name;
   
   switch(key) {
-    case LEFT:   name = "LEFT";   break;
-    case RIGHT:  name = "RIGHT";  break;
-    case TOP:    name = "TOP";    break;
-    case BOTTOM: name = "BOTTOM"; break;
-    case CLICK:  name = "CLICK";  break;
-    default:     name = "NONE";   break;
+    case JSK_LEFT:   name = "LEFT";   break;
+    case JSK_RIGHT:  name = "RIGHT";  break;
+    case JSK_TOP:    name = "TOP";    break;
+    case JSK_BOTTOM: name = "BOTTOM"; break;
+    case JSK_CLICK:  name = "CLICK";  break;
+    default:         name = "NONE";   break;
   }
   return name;
 }
