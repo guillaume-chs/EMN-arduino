@@ -3,7 +3,6 @@
 #define J1      'X'
 #define J2      'O'
 #define JNONE   '.'
-#define EGALITE '='
 #define CASE_SELECTED "_"
 
 #define CASE_W  25
@@ -200,7 +199,7 @@ private:
             }
         }
 
-        return EGALITE;
+        return JNONE;
     }
 
 public:
@@ -241,8 +240,8 @@ void Grille::draw(U8GLIB_NHD_C12864 *u8g) {
         this->drawTitleBox(u8g, "VICTOIRE DE J1");
     } else if (this->gagnant == J2) {
         this->drawTitleBox(u8g, "VICTOIRE DE J2");
-    } else if (this->gagnant == EGALITE) {
-        this->drawTitleBox(u8g, "=== EGALITE ===");
+    } else if (this->gagnant == 'a') {
+        this->drawTitleBox(u8g, "= EGALITE =");
     }
 
     else {
@@ -362,4 +361,16 @@ void Grille::playTurn(char joueur, int line, int col) {
     }
     
     this->gagnant = this->checkWinner();
+
+    bool fini = true;
+    for (int line = 0; line < 3; line++) {
+        for (int col = 0; col < 3; col++) {
+            if (this->cases[line][col]->getJoueur() == JNONE) {
+                fini = false;
+            }
+        }
+    }
+    if (fini && this->gagnant == JNONE) {
+        this->gagnant = 'a';
+    }
 }
