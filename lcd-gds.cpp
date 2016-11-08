@@ -100,14 +100,6 @@ TASK(periodicTask) {
     grid.moveCursor(uiKeyCode);
     uiKeyCode = JSK_NONE;
 
-    // print some data
-    Serial.print(grid.getJoueurCourant());
-    Serial.print(" - X:");
-    Serial.print(grid.getCaseSelected()->getX());
-    Serial.print(" - Y:");
-    Serial.print(grid.getCaseSelected()->getY());
-    Serial.println();
-
     if (grid.needsRedraw()) {
       u8g.firstPage();
       do {
