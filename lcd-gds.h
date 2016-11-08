@@ -90,12 +90,14 @@ private:
     Case *cases[3][3];
     Case *selected;
     char joueur;
+    char gagnant;
     bool redraw;
     uint8_t keyCodePrev;
     
     void drawTitleBox(U8GLIB_NHD_C12864 *u8g, char *message);
     void buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
     void drawCases(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit);
+    void playTurn(char joueur, int line, int col);
 
     bool canPlay(int line, int col) {
         return this->cases[line-1][col-1]->getJoueur() == JNONE;
@@ -163,7 +165,7 @@ private:
     /**
     * Methode qui retourne le nom du gagne (dernier joueur, ou JNONE).
     **/
-    char *checkWinner() {
+    char checkWinner() {
         char *lastJoueur = this->selected->getJoueur();
 
         // check selected line
@@ -174,22 +176,22 @@ private:
                 break;
             }
         }
-
         if (haveWinner) {
-            return lastJoueur;
-        } else {
-            // check selected column
-            for (int line = 0; line < 3; line++) {
-                if (this->cases[line][this->selected->getCol()-1]->getJoueur() != lastJoueur) {
-                    haveWinner = false;
-                    break;
-                }
+            return *(lastJoueur);
+        }
+        haveWinner = true;
+
+        // check selected column
+        for (int line = 0; line < 3; line++) {
+            if (this->cases[line][this->selected->getCol()-1]->getJoueur() != lastJoueur) {
+                haveWinner = false;
+                break;
             }
         }
-
         if (haveWinner) {
-            return lastJoueur;
+            return *(lastJoueur);
         }
+        haveWinner = true;
 
         // check diagonal where X = 1 (adapt with Y value)
         if (selected->getLine()==1) {
@@ -199,10 +201,10 @@ private:
                 haveWinner = checkD13();
             }
         }
-
         if (haveWinner) {
-            return lastJoueur;
+            return *(lastJoueur);
         }
+        haveWinner = true;
 
         // check diagonal where X = 3 (adapt with Y value)
         if (selected->getLine()==3) {
@@ -212,10 +214,14 @@ private:
                 haveWinner = checkD33();
             }
         }
+        if (haveWinner) {
+            return *(lastJoueur);
+        }
+        haveWinner = true;
 
         if (selected->getLine()==2 && selected->getCol()==2){
             if (checkD11() || checkD13() || checkD31() || checkD33()) {
-                return lastJoueur;
+                return *(lastJoueur);
             }
         }
 
@@ -234,6 +240,7 @@ public:
 
         this->selected = this->cases[0][0];
         this->joueur = J1;
+        this->gagnant = JNONE;
         this->redraw = true;
         this->keyCodePrev = JSK_NONE;
     }
@@ -248,7 +255,6 @@ public:
     
     void moveCursor(uint8_t keyCode);
     void draw(U8GLIB_NHD_C12864 *u8g);
-    void playTurn(char joueur, int line, int col);
 };
 
 
@@ -256,13 +262,21 @@ public:
 
 
 void Grille::draw(U8GLIB_NHD_C12864 *u8g) {
-    if (this->joueur == J1) {
-        this->drawTitleBox(u8g, "Au J1 de jouer");
-    } else if (this->joueur == J2) {
-        this->drawTitleBox(u8g, "Au J2 de jouer");
+    if (this->gagnant == J1) {
+        this->drawTitleBox(u8g, "VICTOIRE DE J1");
+    } else if (this->gagnant == J2) {
+        this->drawTitleBox(u8g, "VICTOIRE DE J2");
     }
-    this->buildGrid(u8g, CASE_W, CASE_H+1);
-    this->drawCases(u8g, CASE_W, CASE_H+1);
+
+    else {
+        if (this->joueur == J1) {
+            this->drawTitleBox(u8g, "Au J1 de jouer");
+        } else if (this->joueur == J2) {
+            this->drawTitleBox(u8g, "Au J2 de jouer");
+        }
+        this->buildGrid(u8g, CASE_W, CASE_H+1);
+        this->drawCases(u8g, CASE_W, CASE_H+1);
+    }
 }
 
 void Grille::buildGrid(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit) {
@@ -310,7 +324,11 @@ void Grille::drawCases(U8GLIB_NHD_C12864 *u8g, int xInit, int yInit) {
             if (this->cases[line][col]->equals(this->selected) && this->cases[line][col]->getJoueur()==JNONE) {
                 u8g->drawStr(xCoord, yCoord, CASE_SELECTED);
             } else {
-                u8g->drawStr(xCoord, yCoord, this->cases[line][col]->print());
+                if (!(line == 2 && col == 2)) {
+                    u8g->drawStr(xCoord, yCoord, this->cases[line][col]->print());
+                } else {
+                    u8g->drawStr(xCoord, yCoord, this->cases[2][2]->print());
+                }
             }
 
             xCoord += (CASE_W + LINE_W);
@@ -365,5 +383,6 @@ void Grille::playTurn(char joueur, int line, int col) {
     } else {
         this->joueur = J1;
     }
-    this->checkWinner();
+    
+    this->gagnant = this->checkWinner();
 }
